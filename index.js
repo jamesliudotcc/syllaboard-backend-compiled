@@ -147,8 +147,7 @@ var User_1 = require('./entity/User');
 typeorm_1
   .createConnection({
     type: 'mongodb',
-    host: process.env.MONGO_URI,
-    port: Number(process.env.MONGO_PORT),
+    host: process.env.MONGODB_URI,
     database: 'test3',
     entities: [
       Assignment_1.Assignment,
