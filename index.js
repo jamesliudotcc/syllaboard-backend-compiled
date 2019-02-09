@@ -52,7 +52,7 @@ var Topic_1 = require("./entity/Topic");
 var User_1 = require("./entity/User");
 typeorm_1.createConnection({
     type: 'mongodb',
-    host: process.env.MONGODB_URI,
+    host: process.env.MONGODB_URL,
     port: Number(process.env.MONGODB_PORT),
     database: process.env.MONGODB_DB_NAME,
     entities: [Assignment_1.Assignment, Cohort_1.Cohort, Deliverable_1.Deliverable, Topic_1.Topic, User_1.User],
@@ -77,8 +77,12 @@ typeorm_1.createConnection({
         /* ****************************************
         //*             Routes
         ******************************************/
+        app.use('/admin', require('./controllers/admin'));
         app.use('/auth', require('./controllers/auth'));
         app.use('/cohort', require('./controllers/cohort'));
+        app.use('/instructor', require('./controllers/instructor'));
+        app.use('/student', require('./controllers/student'));
+        // Catchall Route
         app.get('*', function (req, res, next) {
             res.status(404).send({ message: 'Not Found' });
         });

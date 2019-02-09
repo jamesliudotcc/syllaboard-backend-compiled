@@ -14,6 +14,8 @@ var Topic_1 = require("./Topic");
 var Deliverable = /** @class */ (function () {
     function Deliverable() {
         this.instructor = [];
+        this.student = [];
+        this.cohort = [];
         this.topics = [];
         this.turnedIn = null; // Maybe just a Boolean?
         this.completed = null; // Date indicates acceptance of assignment
@@ -30,6 +32,14 @@ var Deliverable = /** @class */ (function () {
         typeorm_1.Column(),
         __metadata("design:type", Array)
     ], Deliverable.prototype, "instructor", void 0);
+    __decorate([
+        typeorm_1.Column(),
+        __metadata("design:type", Array)
+    ], Deliverable.prototype, "student", void 0);
+    __decorate([
+        typeorm_1.Column(),
+        __metadata("design:type", Array)
+    ], Deliverable.prototype, "cohort", void 0);
     __decorate([
         typeorm_1.Column(),
         __metadata("design:type", String)
@@ -63,6 +73,9 @@ var Deliverable = /** @class */ (function () {
         typeorm_1.Column(),
         __metadata("design:type", Number)
     ], Deliverable.prototype, "grade", void 0);
+    Deliverable = __decorate([
+        typeorm_1.Entity()
+    ], Deliverable);
     return Deliverable;
 }());
 exports.Deliverable = Deliverable;

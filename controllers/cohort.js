@@ -60,7 +60,7 @@ router.delete('/delete', requireAuth, function (req, res) { return __awaiter(_th
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log("Deleting Cohort!");
+                console.log('Deleting Cohort!');
                 console.log(req.body.id);
                 _a.label = 1;
             case 1:
@@ -72,7 +72,7 @@ router.delete('/delete', requireAuth, function (req, res) { return __awaiter(_th
             case 3:
                 deletedCohort = _a.sent();
                 console.log(deletedCohort);
-                return [2 /*return*/, res.send({ message: "It worked! " })];
+                return [2 /*return*/, res.send({ message: 'It worked! ' })];
             case 4:
                 err_1 = _a.sent();
                 console.log('Error with /cohort/delete POST route:', err_1);
@@ -102,8 +102,8 @@ router.post('/new', requireAuth, function (req, res) { return __awaiter(_this, v
                     return [2 /*return*/, res.status(409).send('Cohort already exists')];
                 }
                 // Turn that String into an ARRAY of strings
-                req.body.students = req.body.students.split(", ");
-                req.body.instructors = req.body.instructors.split(", ");
+                req.body.students = req.body.students.split(', ');
+                req.body.instructors = req.body.instructors.split(', ');
                 return [4 /*yield*/, cohortRepository.create(req.body)];
             case 3:
                 createdCohort = _a.sent();

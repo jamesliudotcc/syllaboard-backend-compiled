@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // TypeORM setup
 var typeorm_1 = require("typeorm");
 var User_1 = require("../entity/User");
-var userRepository = typeorm_1.getRepository(User_1.User);
+var userRepository = typeorm_1.getMongoRepository(User_1.User);
 // Passport
 var passport = require("passport");
 var passport_jwt_1 = require("passport-jwt");

@@ -20,7 +20,8 @@ var Cohort = /** @class */ (function () {
         this.instructors = []; // User
     }
     Cohort.prototype.generateKey = function () {
-        this.key = nanoid();
+        this.studentKey = nanoid();
+        this.instructorKey = nanoid();
     };
     __decorate([
         typeorm_1.ObjectIdColumn(),
@@ -29,7 +30,11 @@ var Cohort = /** @class */ (function () {
     __decorate([
         typeorm_1.Column(),
         __metadata("design:type", String)
-    ], Cohort.prototype, "key", void 0);
+    ], Cohort.prototype, "studentKey", void 0);
+    __decorate([
+        typeorm_1.Column(),
+        __metadata("design:type", String)
+    ], Cohort.prototype, "instructorKey", void 0);
     __decorate([
         typeorm_1.Column(),
         __metadata("design:type", String)

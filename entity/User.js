@@ -46,7 +46,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var bcrypt = require("bcrypt");
 var typeorm_1 = require("typeorm");
-var Deliverable_1 = require("./Deliverable");
 var User = /** @class */ (function () {
     function User() {
         this.firstName = '';
@@ -93,7 +92,7 @@ var User = /** @class */ (function () {
         __metadata("design:type", String)
     ], User.prototype, "role", void 0);
     __decorate([
-        typeorm_1.Column(function (type) { return Deliverable_1.Deliverable; }),
+        typeorm_1.Column(),
         __metadata("design:type", Array)
     ], User.prototype, "deliverables", void 0);
     __decorate([

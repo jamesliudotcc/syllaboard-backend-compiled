@@ -47,44 +47,101 @@ typeorm_1.createConnection({
     host: process.env.MONGO_URL,
     port: Number(process.env.MONGO_PORT),
     database: 'test3',
-    entities: [Assignment_1.Assignment, Cohort_1.Cohort, User_1.User],
+    entities: [Assignment_1.Assignment, Cohort_1.Cohort, Deliverable_1.Deliverable, User_1.User],
     useNewUrlParser: true,
     synchronize: true,
     logging: false,
 }).then(function (connection) { return __awaiter(_this, void 0, void 0, function () {
-    var userRepository, assignmentRepository, cohortRepository, manager, users, students, error_1;
+    var userRepository, deliverableRepository, assignmentRepository, cohortRepository, manager;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                userRepository = typeorm_1.getRepository(User_1.User);
-                assignmentRepository = typeorm_1.getRepository(Assignment_1.Assignment);
-                cohortRepository = typeorm_1.getRepository(Cohort_1.Cohort);
-                manager = typeorm_1.getMongoManager();
-                return [4 /*yield*/, userRepository.find()];
-            case 1:
-                users = _a.sent();
-                students = users
-                    .filter(function (s) { return s.role === 'student'; })
-                    .filter(function (s) { return s.deliverables.length >= 1; })
-                    .map(function (s) { return ({ student: s._id, deliverables: s.deliverables }); });
-                console.log(students);
-                return [3 /*break*/, 3];
-            case 2:
-                error_1 = _a.sent();
-                console.log('Something went wrong', error_1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+        try {
+            userRepository = typeorm_1.getRepository(User_1.User);
+            deliverableRepository = typeorm_1.getMongoRepository(Deliverable_1.Deliverable);
+            assignmentRepository = typeorm_1.getRepository(Assignment_1.Assignment);
+            cohortRepository = typeorm_1.getRepository(Cohort_1.Cohort);
+            manager = typeorm_1.getMongoManager();
+            // // Uncomment to run functions to populate mock data:
+            // await createAssignment(userRepository, assignmentRepository, manager);
+            // // Assignment to each member of cohort
+            // await assignmentToDeliverables();
+            // // Student hands in deliverable with URL:
+            // await handInAssignment(userRepository, deliverableRepository, manager);
+            // // Instructor finds all deliverables marked turned in
+            // await gradeTurnedInDeliverable(deliverableRepository, manager);
         }
+        catch (error) {
+            console.log('Something went wrong', error);
+        }
+        return [2 /*return*/];
     });
 }); });
-function assignmentToDeliverables(assignmentRepository, cohortRepository, userRepository) {
+function gradeTurnedInDeliverable(deliverableRepository, manager) {
     return __awaiter(this, void 0, void 0, function () {
-        var thisAssignment, thisCohort;
+        var allDelivered, deliveredID, acceptedAssignment, accepted;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, deliverableRepository.find({
+                        where: { turnedIn: { $ne: null } },
+                    })];
+                case 1:
+                    allDelivered = _a.sent();
+                    console.log(allDelivered[0]._id);
+                    deliveredID = allDelivered[0];
+                    return [4 /*yield*/, manager.updateOne(Deliverable_1.Deliverable, deliveredID, {
+                            $set: { completed: true, grade: '20' },
+                        })];
+                case 2:
+                    acceptedAssignment = _a.sent();
+                    console.log(acceptedAssignment);
+                    return [4 /*yield*/, deliverableRepository.find({
+                            where: { turnedIn: { $ne: null } },
+                        })];
+                case 3:
+                    accepted = _a.sent();
+                    console.log(accepted[0]);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function handInAssignment(userRepository, deliverableRepository, manager) {
+    return __awaiter(this, void 0, void 0, function () {
+        var someStudent, someDeliverable, savedAssignment;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, userRepository.findOne({
+                        where: { lastName: 'Hulbert' },
+                    })];
+                case 1:
+                    someStudent = _a.sent();
+                    return [4 /*yield*/, deliverableRepository.findOne(someStudent.deliverables[0])];
+                case 2:
+                    someDeliverable = _a.sent();
+                    console.log(someDeliverable);
+                    return [4 /*yield*/, manager.updateOne(Deliverable_1.Deliverable, someDeliverable, {
+                            $set: { turnedIn: new Date(), deliverable: 'http://www.google.com' },
+                        })];
+                case 3:
+                    savedAssignment = _a.sent();
+                    console.log(savedAssignment);
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function assignmentToDeliverables() {
+    return __awaiter(this, void 0, void 0, function () {
+        var userRepository, assignmentRepository, cohortRepository, deliverableRepository, manager, thisAssignment, thisCohort;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, assignmentRepository.findOne()];
+                case 0:
+                    userRepository = typeorm_1.getRepository(User_1.User);
+                    assignmentRepository = typeorm_1.getRepository(Assignment_1.Assignment);
+                    cohortRepository = typeorm_1.getRepository(Cohort_1.Cohort);
+                    deliverableRepository = typeorm_1.getRepository(Deliverable_1.Deliverable);
+                    manager = typeorm_1.getMongoManager();
+                    return [4 /*yield*/, assignmentRepository.findOne()];
                 case 1:
                     thisAssignment = _a.sent();
                     console.log(thisAssignment);
@@ -93,26 +150,34 @@ function assignmentToDeliverables(assignmentRepository, cohortRepository, userRe
                         })];
                 case 2:
                     thisCohort = _a.sent();
-                    thisCohort.students.forEach(function (student) { return __awaiter(_this, void 0, void 0, function () {
-                        var thisStudent, studentDeliverable;
+                    thisCohort.students.forEach(function (studentId) { return __awaiter(_this, void 0, void 0, function () {
+                        var deliverable, freshDeliverable, savedDeliverable, student, savedStudent;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, userRepository.findOne({ _id: student })];
+                                case 0:
+                                    deliverable = new Deliverable_1.Deliverable();
+                                    deliverable.name = thisAssignment.name;
+                                    deliverable.student.push(studentId);
+                                    deliverable.cohort.push(thisCohort._id);
+                                    deliverable.instructions = thisAssignment.instructions;
+                                    deliverable.instructor = thisAssignment.instructor;
+                                    deliverable.resourcesUrls = thisAssignment.resourcesUrls;
+                                    deliverable.topics = thisAssignment.topics;
+                                    deliverable.deadline = new Date('2019-02-11');
+                                    return [4 /*yield*/, manager.save(deliverable)];
                                 case 1:
-                                    thisStudent = _a.sent();
-                                    console.log(thisStudent.firstName);
-                                    studentDeliverable = new Deliverable_1.Deliverable();
-                                    studentDeliverable.name = thisAssignment.name;
-                                    studentDeliverable.instructions = thisAssignment.instructions;
-                                    studentDeliverable.instructor = thisAssignment.instructor;
-                                    studentDeliverable.resourcesUrls = thisAssignment.resourcesUrls;
-                                    studentDeliverable.topics = thisAssignment.topics;
-                                    studentDeliverable.deadline = new Date('2019-02-11');
-                                    // Push deliverable
-                                    thisStudent.deliverables.push(studentDeliverable);
-                                    return [4 /*yield*/, userRepository.update(thisStudent, thisStudent)];
+                                    freshDeliverable = _a.sent();
+                                    return [4 /*yield*/, deliverableRepository.findOne(freshDeliverable)];
                                 case 2:
-                                    _a.sent();
+                                    savedDeliverable = _a.sent();
+                                    return [4 /*yield*/, userRepository.findOne(studentId)];
+                                case 3:
+                                    student = _a.sent();
+                                    student.deliverables.push(savedDeliverable._id);
+                                    return [4 /*yield*/, manager.save(student)];
+                                case 4:
+                                    savedStudent = _a.sent();
+                                    console.log(savedStudent);
                                     return [2 /*return*/];
                             }
                         });
@@ -124,7 +189,7 @@ function assignmentToDeliverables(assignmentRepository, cohortRepository, userRe
 }
 function createAssignment(userRepository, assignmentRepository, manager) {
     return __awaiter(this, void 0, void 0, function () {
-        var someIntructor, assignment1, createdAssignment, savedAssignment;
+        var someIntructor, assignment1, createdAssignment1, savedAssignment1, assignment2, createdAssignment2, savedAssignment2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, userRepository.findOne({
@@ -145,11 +210,28 @@ function createAssignment(userRepository, assignmentRepository, manager) {
                     ];
                     return [4 /*yield*/, assignmentRepository.create(assignment1)];
                 case 2:
-                    createdAssignment = _a.sent();
-                    return [4 /*yield*/, manager.save(createdAssignment)];
+                    createdAssignment1 = _a.sent();
+                    return [4 /*yield*/, manager.save(createdAssignment1)];
                 case 3:
-                    savedAssignment = _a.sent();
-                    console.log(savedAssignment);
+                    savedAssignment1 = _a.sent();
+                    console.log(savedAssignment1);
+                    assignment2 = new Assignment_1.Assignment();
+                    assignment2.name = 'Resume';
+                    assignment2.instructor.push(someIntructor._id);
+                    assignment2.version = 1;
+                    assignment2.cohortType = ['WDI', 'UXDI', 'DSI'];
+                    assignment2.cohortWeek = '1';
+                    assignment2.instructions = 'Create a cover letter';
+                    assignment2.resourcesUrls = [
+                        'https://zety.com/blog/how-to-make-a-cover-letter',
+                    ];
+                    return [4 /*yield*/, assignmentRepository.create(assignment2)];
+                case 4:
+                    createdAssignment2 = _a.sent();
+                    return [4 /*yield*/, manager.save(createdAssignment2)];
+                case 5:
+                    savedAssignment2 = _a.sent();
+                    console.log(savedAssignment2);
                     return [2 /*return*/];
             }
         });

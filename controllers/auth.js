@@ -43,8 +43,8 @@ var jwt = require("jsonwebtoken");
 var typeorm_1 = require("typeorm");
 var Cohort_1 = require("../entity/Cohort");
 var User_1 = require("../entity/User");
-var userRepository = typeorm_1.getRepository(User_1.User);
-var cohortRepository = typeorm_1.getRepository(Cohort_1.Cohort);
+var userRepository = typeorm_1.getMongoRepository(User_1.User);
+var cohortRepository = typeorm_1.getMongoRepository(Cohort_1.Cohort);
 var manager = typeorm_1.getManager();
 // Express setup
 var router = express.Router();
@@ -67,17 +67,18 @@ var createToken = function (user) {
 /* POST /auth/signin - Require user/password, return JWT */
 router.post('/signin', requireSignIn, function (req, res) {
     var token = createToken(req.user);
-    return res.send({ token: token });
+    var role = req.user.role;
+    return res.send({ token: token, role: role });
 });
 // TODO: Remove this route after done testing
 /* GET /auth/test - Require JWT, Return message */
 router.get('/test', requireAuth, function (req, res) {
     console.log('In /auth/test');
-    return res.send({ message: 'Hello There!' });
+    return res.send({ message: 'Hello There!', role: req.user.role });
 });
 /* GET /auth/signup - Take user data and create new user in db, return JWT */
 router.post('/signup', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var newUserData, cohort, user, createdUser, savedUser, newStudent, token, err_1;
+    var newUserData, user, instructorCohort, createdInstructor, savedInstructor, newInstructor, instructorToken, instructorRole, studentCohort, createdStudent, savedStudent, newStudent, studentToken, studentRole, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -92,42 +93,64 @@ router.post('/signup', function (req, res) { return __awaiter(_this, void 0, voi
                 };
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 8, , 9]);
-                return [4 /*yield*/, cohortRepository.findOne({ key: req.body.cohortKey })];
-            case 2:
-                cohort = _a.sent();
-                if (!cohort) {
-                    return [2 /*return*/, res.status(409).send('No cohort found')];
-                }
+                _a.trys.push([1, 15, , 16]);
                 return [4 /*yield*/, userRepository.findOne({ email: newUserData.email })];
-            case 3:
+            case 2:
                 user = _a.sent();
                 console.log('Existing User:', user);
-                // If user exists, don't let them create a duplicate
                 if (user) {
                     return [2 /*return*/, res.status(409).send('User already exists')];
                 }
+                return [4 /*yield*/, cohortRepository.findOne({ instructorKey: req.body.cohortKey })];
+            case 3:
+                instructorCohort = _a.sent();
+                if (!instructorCohort) return [3 /*break*/, 8];
                 return [4 /*yield*/, userRepository.create(newUserData)];
             case 4:
-                createdUser = _a.sent();
-                return [4 /*yield*/, manager.save(createdUser)];
+                createdInstructor = _a.sent();
+                createdInstructor.role = 'instructor';
+                return [4 /*yield*/, manager.save(createdInstructor)];
             case 5:
-                savedUser = _a.sent();
-                console.log('Saved User:', savedUser);
-                return [4 /*yield*/, userRepository.findOne({ email: savedUser.email })];
+                savedInstructor = _a.sent();
+                console.log('Saved Instructor:', savedInstructor);
+                return [4 /*yield*/, userRepository.findOne({ email: savedInstructor.email })];
             case 6:
-                newStudent = _a.sent();
-                cohort.students.push(newStudent._id);
-                return [4 /*yield*/, cohortRepository.save(cohort)];
+                newInstructor = _a.sent();
+                instructorCohort.instructors.push(newInstructor._id);
+                return [4 /*yield*/, cohortRepository.save(instructorCohort)];
             case 7:
                 _a.sent();
-                token = createToken(savedUser);
-                return [2 /*return*/, res.send({ token: token })];
-            case 8:
+                instructorToken = createToken(savedInstructor);
+                instructorRole = savedInstructor.role;
+                return [2 /*return*/, res.send({ token: instructorToken, role: instructorRole })];
+            case 8: return [4 /*yield*/, cohortRepository.findOne({ studentKey: req.body.cohortKey })];
+            case 9:
+                studentCohort = _a.sent();
+                if (!studentCohort) return [3 /*break*/, 14];
+                return [4 /*yield*/, userRepository.create(newUserData)];
+            case 10:
+                createdStudent = _a.sent();
+                createdStudent.role = 'student';
+                return [4 /*yield*/, manager.save(createdStudent)];
+            case 11:
+                savedStudent = _a.sent();
+                console.log('Saved Student:', savedStudent);
+                return [4 /*yield*/, userRepository.findOne({ email: savedStudent.email })];
+            case 12:
+                newStudent = _a.sent();
+                studentCohort.students.push(newStudent._id);
+                return [4 /*yield*/, cohortRepository.save(studentCohort)];
+            case 13:
+                _a.sent();
+                studentToken = createToken(savedStudent);
+                studentRole = savedStudent.role;
+                return [2 /*return*/, res.send({ token: studentToken, role: studentRole })];
+            case 14: return [2 /*return*/, res.status(409).send('No cohort found')];
+            case 15:
                 err_1 = _a.sent();
                 console.log('Error in POST /auth/signup', err_1);
                 return [2 /*return*/, res.status(503).send('Database Error')];
-            case 9: return [2 /*return*/];
+            case 16: return [2 /*return*/];
         }
     });
 }); });

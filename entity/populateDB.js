@@ -56,7 +56,7 @@ typeorm_1.createConnection({
     type: 'mongodb',
     host: process.env.MONGO_URL,
     port: Number(process.env.MONGO_PORT),
-    database: 'test3',
+    database: process.env.MONGODB_DB_NAME,
     entities: [Assignment_1.Assignment, Cohort_1.Cohort, Deliverable_1.Deliverable, User_1.User],
     useNewUrlParser: true,
     synchronize: true,
@@ -67,7 +67,7 @@ typeorm_1.createConnection({
         try {
             manager = typeorm_1.getMongoManager();
             // Uncomment and run for mock data
-            // createUsers(manager);
+            createUsers(manager);
             // await createCohorts(manager);
             // await populateCohorts(manager);
         }

@@ -50,11 +50,11 @@ typeorm_1.createConnection({
     synchronize: true,
     logging: false,
 }).then(function (connection) { return __awaiter(_this, void 0, void 0, function () {
-    var userRepository, assignmentRepository, cohortRepository, manager, Cohort1, savedCohort, Assignment1, createdAssignment, savedAssignment, error_1;
+    var userRepository, assignmentRepository, cohortRepository, manager, Cohort1, savedCohort, Assignment1, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _a.trys.push([0, 2, , 3]);
                 userRepository = typeorm_1.getRepository(User_1.User);
                 assignmentRepository = typeorm_1.getRepository(Deliverable_1.Deliverable);
                 cohortRepository = typeorm_1.getRepository(Cohort_1.Cohort);
@@ -79,19 +79,12 @@ typeorm_1.createConnection({
                     ],
                     deadline: new Date('2019-02-17'),
                 };
-                return [4 /*yield*/, assignmentRepository.create(Assignment1)];
+                return [3 /*break*/, 3];
             case 2:
-                createdAssignment = _a.sent();
-                return [4 /*yield*/, manager.save(createdAssignment)];
-            case 3:
-                savedAssignment = _a.sent();
-                console.log(savedAssignment);
-                return [3 /*break*/, 5];
-            case 4:
                 error_1 = _a.sent();
                 console.log('Something went wrong', error_1);
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
