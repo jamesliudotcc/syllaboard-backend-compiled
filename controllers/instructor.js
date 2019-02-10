@@ -89,6 +89,7 @@ router.post('/assignments', requireAuth, function (req, res) { return __awaiter(
             case 1:
                 _a.trys.push([1, 5, , 6]);
                 incoming = req.body;
+                incoming.instructor = req.user._id;
                 assignment = new Assignment_1.Assignment();
                 if (incoming.cohortType) {
                     assignment.cohortType = incoming.cohortType;

@@ -105,9 +105,8 @@ function populateCohorts(manager) {
                     someUsers
                         .filter(function (user) { return user.role === 'student'; })
                         .forEach(function (user) { return __awaiter(_this, void 0, void 0, function () {
-                        var a;
                         return __generator(this, function (_a) {
-                            a = WDI22.students.push(user._id);
+                            WDI22.students.push(user._id);
                             console.log(user.firstName, user.lastName, user.role, 'to WDI22');
                             manager.save(WDI22);
                             return [2 /*return*/];
@@ -439,34 +438,26 @@ function createUsers(manager) {
                 lastName: 'Darneille',
                 email: 'taylor@ga.co',
             },
-            {
-                firstName: 'Tiertza',
-                lastName: 'Keling',
-                email: 'tkeling2@godaddy.com',
-            },
         ].map(function (user) { return (__assign({}, user, { role: 'instructor', password: 'password' })); });
     }
     function generatedAdmins() {
         return [
             {
-                firstName: 'Domenico',
-                lastName: 'Clemence',
-                email: 'dclemence0@bloglines.com',
-                password: 'Scrophulariaceae',
+                firstName: 'James',
+                lastName: 'Liu',
+                email: 'james@jamesliu.cc',
             },
             {
-                firstName: 'Jenn',
-                lastName: 'Occleshaw',
-                email: 'joccleshaw1@unblog.fr',
-                password: 'Pinaceae',
+                firstName: 'Sarah',
+                lastName: 'King',
+                email: '009kings@gmail.com',
             },
             {
-                firstName: 'Eugenio',
-                lastName: 'Dyhouse',
-                email: 'edyhouse2@opensource.org',
-                password: 'Orchidaceae',
+                firstName: 'Parker',
+                lastName: 'Couch',
+                email: 'parkercouch@gmail.com',
             },
-        ].map(function (user) { return (__assign({}, user, { role: 'admin' })); });
+        ].map(function (user) { return (__assign({}, user, { role: 'admin', password: 'password' })); });
     }
 }
 //# sourceMappingURL=populateDB2.js.map
