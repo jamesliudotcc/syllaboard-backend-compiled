@@ -66,6 +66,12 @@ var requireAuth = passport.authenticate('jwt', { session: false });
 /*************************************** */
 //             Controllers
 /*************************************** */
+router.get('/', requireAuth, function (req, res) {
+    if (req.user.role !== 'admin') {
+        return res.status(403).send({ error: 'Not an admin' });
+    }
+    return res.send({ user: req.user });
+});
 router.get('/users', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
     var users, error_1;
     return __generator(this, function (_a) {
@@ -142,7 +148,7 @@ router.post('/users', requireAuth, function (req, res) { return __awaiter(_this,
                 return [4 /*yield*/, usersRepository.findOne(savedUser)];
             case 4:
                 mintedUser = _a.sent();
-                res.send(mintedUser);
+                res.send({ user: mintedUser });
                 return [3 /*break*/, 6];
             case 5:
                 error_3 = _a.sent();
@@ -153,7 +159,7 @@ router.post('/users', requireAuth, function (req, res) { return __awaiter(_this,
     });
 }); });
 router.put('/users/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var toEditUser, editedUser, updatedUser, error_4;
+    var toEditUser, editedUser, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -167,14 +173,14 @@ router.put('/users/:id', requireAuth, function (req, res) { return __awaiter(_th
                 return [4 /*yield*/, usersRepository.findOne(req.params.id)];
             case 2:
                 toEditUser = _a.sent();
-                editedUser = validateUser(toEditUser, req.body);
+                editedUser = editUser(toEditUser, req.body);
                 return [4 /*yield*/, usersRepository.updateOne(toEditUser, {
                         $set: editedUser,
                     })];
             case 3:
-                updatedUser = _a.sent();
+                _a.sent();
                 res.send({
-                    edited: updatedUser,
+                    edited: editedUser,
                 });
                 return [3 /*break*/, 5];
             case 4:
@@ -223,7 +229,7 @@ router.get('/cohorts', requireAuth, function (req, res) { return __awaiter(_this
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, cohortRepository.find({})];
+                return [4 /*yield*/, cohortRepository.find()];
             case 2:
                 cohorts = _a.sent();
                 return [2 /*return*/, res.send({ cohorts: cohorts })];
@@ -235,7 +241,7 @@ router.get('/cohorts', requireAuth, function (req, res) { return __awaiter(_this
         }
     });
 }); });
-router.post('/cohorts', function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+router.post('/cohorts', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
     var newCohort, createdCohort, savedCohort, mintedCohort, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -263,7 +269,9 @@ router.post('/cohorts', function (req, res) { return __awaiter(_this, void 0, vo
                 return [4 /*yield*/, cohortRepository.findOne(savedCohort)];
             case 4:
                 mintedCohort = _a.sent();
-                res.send(mintedCohort);
+                res.send({
+                    cohort: mintedCohort,
+                });
                 return [3 /*break*/, 6];
             case 5:
                 error_7 = _a.sent();
@@ -273,8 +281,44 @@ router.post('/cohorts', function (req, res) { return __awaiter(_this, void 0, vo
         }
     });
 }); });
+router.get('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+    var cohort_1, instructorsForCohort, error_8;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (req.user.role !== 'admin') {
+                    return [2 /*return*/, res.status(403).send({ error: 'Not an admin' })];
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, cohortRepository.findOne(req.params.id)];
+            case 2:
+                cohort_1 = _a.sent();
+                instructorsForCohort = cohort_1.instructors.map(function (instructor) {
+                    return usersRepository.findOne(instructor);
+                });
+                Promise.all(instructorsForCohort).then(function (instructors) {
+                    var cohortWithInstructors = __assign({}, cohort_1, { instructors: instructors });
+                    var studentsForCohort = cohort_1.students.map(function (student) {
+                        return usersRepository.findOne(student);
+                    });
+                    Promise.all(studentsForCohort).then(function (students) {
+                        var cohortWithStudents = __assign({}, cohortWithInstructors, { students: students });
+                        return res.send({ cohort: cohortWithStudents });
+                    });
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                error_8 = _a.sent();
+                console.log('Error with the admin/cohorts/ GET route', error_8);
+                return [2 /*return*/, res.send({ error: 'error' })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
 router.put('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var toEditCohort, editedCohort, updatedCohort, error_8;
+    var toEditCohort, editedCohort, error_9;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -288,26 +332,26 @@ router.put('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_
                 return [4 /*yield*/, cohortRepository.findOne(req.params.id)];
             case 2:
                 toEditCohort = _a.sent();
-                editedCohort = validateCohort(toEditCohort, req.body);
+                editedCohort = editCohort(toEditCohort, req.body);
                 return [4 /*yield*/, cohortRepository.updateOne(toEditCohort, {
                         $set: editedCohort,
                     })];
             case 3:
-                updatedCohort = _a.sent();
+                _a.sent();
                 res.send({
-                    edited: updatedCohort,
+                    edited: editedCohort,
                 });
                 return [3 /*break*/, 5];
             case 4:
-                error_8 = _a.sent();
-                console.log('Error with admin/cohort/ POST route:', error_8);
+                error_9 = _a.sent();
+                console.log('Error with admin/cohort/ POST route:', error_9);
                 return [2 /*return*/, res.status(503).send({ user: null })];
             case 5: return [2 /*return*/];
         }
     });
 }); });
 router.delete('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var cohort, deletedCohort, error_9;
+    var cohort, deletedCohort, error_10;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -326,15 +370,15 @@ router.delete('/cohorts/:id', requireAuth, function (req, res) { return __awaite
                 deletedCohort = _a.sent();
                 return [2 /*return*/, res.send({ deleted: deletedCohort })];
             case 4:
-                error_9 = _a.sent();
-                console.log('Something went wrong', error_9);
+                error_10 = _a.sent();
+                console.log('Something went wrong', error_10);
                 return [2 /*return*/, res.send({ error: 'error' })];
             case 5: return [2 /*return*/];
         }
     });
 }); });
 router.put('/cohorts/instructors/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var toEditCohort_1, error_10;
+    var toEditCohort_1, error_11;
     var _this = this;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -376,8 +420,8 @@ router.put('/cohorts/instructors/:id', requireAuth, function (req, res) { return
                 res.status(202).send('ok');
                 return [3 /*break*/, 4];
             case 3:
-                error_10 = _a.sent();
-                console.log('Error with admin/cohort/ POST route:', error_10);
+                error_11 = _a.sent();
+                console.log('Error with admin/cohort/ POST route:', error_11);
                 return [2 /*return*/, res.status(503).send({ user: null })];
             case 4: return [2 /*return*/];
         }
@@ -387,7 +431,7 @@ module.exports = router;
 /*************************************** */
 //          Edit Functions
 /*************************************** */
-function validateCohort(toEditCohort, incoming) {
+function editCohort(toEditCohort, incoming) {
     var editedCohort = __assign({}, toEditCohort);
     if (incoming.name) {
         editedCohort.name = incoming.name;
@@ -403,7 +447,7 @@ function validateCohort(toEditCohort, incoming) {
         : new Date(toEditCohort.endDate);
     return editedCohort;
 }
-function validateUser(toEditUser, incoming) {
+function editUser(toEditUser, incoming) {
     var editedUser = __assign({}, toEditUser);
     if (incoming.firstName) {
         editedUser.firstName = incoming.firstName;

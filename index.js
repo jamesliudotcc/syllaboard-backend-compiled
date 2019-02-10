@@ -54,7 +54,7 @@ typeorm_1.createConnection({
     type: 'mongodb',
     host: process.env.MONGODB_URL,
     port: Number(process.env.MONGODB_PORT),
-    database: process.env.MONGODB_DB_NAME,
+    database: 'test3',
     entities: [Assignment_1.Assignment, Cohort_1.Cohort, Deliverable_1.Deliverable, Topic_1.Topic, User_1.User],
     username: process.env.MONGODB_USERNAME,
     password: process.env.MONGODB_PASSWORD,
@@ -79,7 +79,6 @@ typeorm_1.createConnection({
         ******************************************/
         app.use('/admin', require('./controllers/admin'));
         app.use('/auth', require('./controllers/auth'));
-        app.use('/cohort', require('./controllers/cohort'));
         app.use('/instructor', require('./controllers/instructor'));
         app.use('/student', require('./controllers/student'));
         // Catchall Route

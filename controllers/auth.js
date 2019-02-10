@@ -84,7 +84,6 @@ router.post('/signup', function (req, res) { return __awaiter(_this, void 0, voi
             case 0:
                 // TODO: debug statements; remove when no longer needed
                 console.log('In the POST /auth/signup route');
-                console.log(req.body);
                 newUserData = {
                     firstName: req.body.firstName,
                     lastName: req.body.lastName,
@@ -97,11 +96,13 @@ router.post('/signup', function (req, res) { return __awaiter(_this, void 0, voi
                 return [4 /*yield*/, userRepository.findOne({ email: newUserData.email })];
             case 2:
                 user = _a.sent();
-                console.log('Existing User:', user);
                 if (user) {
+                    console.log('Existing User:', user.firstName);
                     return [2 /*return*/, res.status(409).send('User already exists')];
                 }
-                return [4 /*yield*/, cohortRepository.findOne({ instructorKey: req.body.cohortKey })];
+                return [4 /*yield*/, cohortRepository.findOne({
+                        instructorKey: req.body.cohortKey,
+                    })];
             case 3:
                 instructorCohort = _a.sent();
                 if (!instructorCohort) return [3 /*break*/, 8];
@@ -113,7 +114,9 @@ router.post('/signup', function (req, res) { return __awaiter(_this, void 0, voi
             case 5:
                 savedInstructor = _a.sent();
                 console.log('Saved Instructor:', savedInstructor);
-                return [4 /*yield*/, userRepository.findOne({ email: savedInstructor.email })];
+                return [4 /*yield*/, userRepository.findOne({
+                        email: savedInstructor.email,
+                    })];
             case 6:
                 newInstructor = _a.sent();
                 instructorCohort.instructors.push(newInstructor._id);
@@ -123,7 +126,9 @@ router.post('/signup', function (req, res) { return __awaiter(_this, void 0, voi
                 instructorToken = createToken(savedInstructor);
                 instructorRole = savedInstructor.role;
                 return [2 /*return*/, res.send({ token: instructorToken, role: instructorRole })];
-            case 8: return [4 /*yield*/, cohortRepository.findOne({ studentKey: req.body.cohortKey })];
+            case 8: return [4 /*yield*/, cohortRepository.findOne({
+                    studentKey: req.body.cohortKey,
+                })];
             case 9:
                 studentCohort = _a.sent();
                 if (!studentCohort) return [3 /*break*/, 14];
@@ -135,7 +140,9 @@ router.post('/signup', function (req, res) { return __awaiter(_this, void 0, voi
             case 11:
                 savedStudent = _a.sent();
                 console.log('Saved Student:', savedStudent);
-                return [4 /*yield*/, userRepository.findOne({ email: savedStudent.email })];
+                return [4 /*yield*/, userRepository.findOne({
+                        email: savedStudent.email,
+                    })];
             case 12:
                 newStudent = _a.sent();
                 studentCohort.students.push(newStudent._id);

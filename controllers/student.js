@@ -66,8 +66,14 @@ var requireAuth = passport.authenticate('jwt', { session: false });
 /*************************************** */
 //             Controllers
 /*************************************** */
+router.get('/', requireAuth, function (req, res) {
+    if (req.user.role !== 'student') {
+        return res.status(403).send({ error: 'Not a student' });
+    }
+    return res.send({ user: req.user });
+});
 router.get('/deliverables', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var student_1, promises, error_1;
+    var student_1, delivForEachStudent, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -80,10 +86,10 @@ router.get('/deliverables', requireAuth, function (req, res) { return __awaiter(
                 return [4 /*yield*/, usersRepository.findOne(req.user._id)];
             case 2:
                 student_1 = _a.sent();
-                promises = student_1.deliverables.map(function (deliverable) {
+                delivForEachStudent = student_1.deliverables.map(function (deliverable) {
                     return deliverableRepository.findOne(deliverable);
                 });
-                Promise.all(promises).then(function (deliverables) {
+                Promise.all(delivForEachStudent).then(function (deliverables) {
                     console.log(deliverables);
                     return res.send({
                         message: 'At the users deliverables GET route',
@@ -122,8 +128,8 @@ router.put('/deliverables/:id', requireAuth, function (req, res) { return __awai
                 updatedDeliverable = _a.sent();
                 res.send({
                     message: 'At the users deliverables/:id PUT route',
-                    deliverable: editedDeliverable,
-                    edited: updatedDeliverable,
+                    editedDeliverable: editedDeliverable,
+                    updatedDeliverable: updatedDeliverable,
                 });
                 return [3 /*break*/, 5];
             case 4:
@@ -135,10 +141,13 @@ router.put('/deliverables/:id', requireAuth, function (req, res) { return __awai
     });
 }); });
 module.exports = router;
+/*************************************** */
+//             Helper Functions
+/*************************************** */
 function editDeliverable(deliverable, incoming) {
     var editedDeliverable = __assign({}, deliverable);
     //
-    console.log('here', incoming);
+    console.log('Turning in deliverable', incoming);
     editedDeliverable.turnedIn = incoming.turnedIn
         ? new Date(incoming.turnedIn)
         : null;
