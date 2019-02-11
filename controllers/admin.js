@@ -47,7 +47,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
+var dotenv_1 = require("dotenv");
 var express = require("express");
+var Mailgun = require("mailgun-js");
+dotenv_1.config();
 // TypeORM setup
 var typeorm_1 = require("typeorm");
 var Cohort_1 = require("../entity/Cohort");
@@ -250,7 +253,6 @@ router.post('/cohorts', requireAuth, function (req, res) { return __awaiter(_thi
                     return [2 /*return*/, res.status(403).send({ error: 'Not an admin' })];
                 }
                 console.log('In the POST /admin/cohort');
-                console.log(req.body);
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 5, , 6]);
@@ -317,8 +319,42 @@ router.get('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_
         }
     });
 }); });
+router.post('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
+    var cohort, emailResponse, error_9;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (req.user.role !== 'admin') {
+                    return [2 /*return*/, res.status(403).send({ error: 'Not an admin' })];
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, cohortRepository.findOne(req.params.id)];
+            case 2:
+                cohort = _a.sent();
+                if (!cohort.studentKey) {
+                    console.log("no student key for " + cohort.name + " cohort");
+                    throw new Error("no student key for " + cohort.name + " cohort");
+                }
+                return [4 /*yield*/, sendEmail({
+                        email: req.body.email,
+                        cohortKey: cohort.studentKey,
+                    })];
+            case 3:
+                emailResponse = _a.sent();
+                res.send(emailResponse);
+                return [3 /*break*/, 5];
+            case 4:
+                error_9 = _a.sent();
+                console.log('Error with admin/cohort/ POST route:', error_9);
+                return [2 /*return*/, res.status(503).send({ user: null })];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); });
 router.put('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var toEditCohort, editedCohort, error_9;
+    var toEditCohort, editedCohort, error_10;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -343,15 +379,15 @@ router.put('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_
                 });
                 return [3 /*break*/, 5];
             case 4:
-                error_9 = _a.sent();
-                console.log('Error with admin/cohort/ POST route:', error_9);
+                error_10 = _a.sent();
+                console.log('Error with admin/cohort/ POST route:', error_10);
                 return [2 /*return*/, res.status(503).send({ user: null })];
             case 5: return [2 /*return*/];
         }
     });
 }); });
 router.delete('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var cohort, deletedCohort, error_10;
+    var cohort, deletedCohort, error_11;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -370,15 +406,15 @@ router.delete('/cohorts/:id', requireAuth, function (req, res) { return __awaite
                 deletedCohort = _a.sent();
                 return [2 /*return*/, res.send({ deleted: deletedCohort })];
             case 4:
-                error_10 = _a.sent();
-                console.log('Something went wrong', error_10);
+                error_11 = _a.sent();
+                console.log('Something went wrong', error_11);
                 return [2 /*return*/, res.send({ error: 'error' })];
             case 5: return [2 /*return*/];
         }
     });
 }); });
 router.put('/cohorts/instructors/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var toEditCohort_1, error_11;
+    var toEditCohort_1, error_12;
     var _this = this;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -420,8 +456,8 @@ router.put('/cohorts/instructors/:id', requireAuth, function (req, res) { return
                 res.status(202).send('ok');
                 return [3 /*break*/, 4];
             case 3:
-                error_11 = _a.sent();
-                console.log('Error with admin/cohort/ POST route:', error_11);
+                error_12 = _a.sent();
+                console.log('Error with admin/cohort/ POST route:', error_12);
                 return [2 /*return*/, res.status(503).send({ user: null })];
             case 4: return [2 /*return*/];
         }
@@ -462,5 +498,43 @@ function editUser(toEditUser, incoming) {
         editedUser.role = incoming.role;
     }
     return editedUser;
+}
+/*************************************** */
+//          Send email
+/*************************************** */
+function sendEmail(emailInfo) {
+    return __awaiter(this, void 0, void 0, function () {
+        var apiKey, domain, mailgun, fromWho, cohortKey, userEmail, link, email, mailGunResponse, error_13;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    apiKey = process.env.MAILGUN_KEY;
+                    domain = process.env.MAILGUN_DOMAIN;
+                    mailgun = new Mailgun({ apiKey: apiKey, domain: domain });
+                    fromWho = 'Syllaboard Robot<robot@jamesliu.cc>';
+                    cohortKey = emailInfo.cohortKey;
+                    userEmail = emailInfo.email;
+                    link = "http://syllaboard.herokuapp.com/signin/" + cohortKey + "/";
+                    email = {
+                        from: fromWho,
+                        to: userEmail,
+                        subject: 'Welcome to Syllaboard',
+                        html: "You have been invited to Syllabard, General Assembly's assignment tracking service. Click <a href=\"" + link + "\">here</a> to sign up.",
+                    };
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, mailgun.messages().send(email)];
+                case 2:
+                    mailGunResponse = _a.sent();
+                    return [2 /*return*/, mailGunResponse];
+                case 3:
+                    error_13 = _a.sent();
+                    console.log(error_13);
+                    return [2 /*return*/, error_13];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
 }
 //# sourceMappingURL=admin.js.map
