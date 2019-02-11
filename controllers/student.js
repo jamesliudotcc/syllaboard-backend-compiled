@@ -121,8 +121,7 @@ router.put('/deliverables/:id', requireAuth, function (req, res) { return __awai
                 return [4 /*yield*/, deliverableRepository.findOne(req.params.id)];
             case 2:
                 deliverable = _a.sent();
-                editedDeliverable = editDeliverable(deliverable, req.body);
-                console.log('At the users deliverables/:id PUT route', req.user._id);
+                editedDeliverable = __assign({}, deliverable, { deliverable: req.body.deliverable, turnedIn: new Date() });
                 return [4 /*yield*/, deliverableRepository.updateOne(deliverable, { $set: editedDeliverable })];
             case 3:
                 updatedDeliverable = _a.sent();
@@ -141,19 +140,4 @@ router.put('/deliverables/:id', requireAuth, function (req, res) { return __awai
     });
 }); });
 module.exports = router;
-/*************************************** */
-//             Helper Functions
-/*************************************** */
-function editDeliverable(deliverable, incoming) {
-    var editedDeliverable = __assign({}, deliverable);
-    //
-    console.log('Turning in deliverable', incoming);
-    editedDeliverable.turnedIn = incoming.turnedIn
-        ? new Date(incoming.turnedIn)
-        : null;
-    if (incoming.deliverable) {
-        editedDeliverable.deliverable = incoming.deliverable;
-    }
-    return editedDeliverable;
-}
 //# sourceMappingURL=student.js.map
