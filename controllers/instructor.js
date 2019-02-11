@@ -409,7 +409,7 @@ router.get('/deliverables', requireAuth, function (req, res) { return __awaiter(
             case 1:
                 _a.trys.push([1, 3, , 4]);
                 return [4 /*yield*/, deliverableRepository.find({
-                        where: { instructors: req.user._id },
+                        where: { instructor: req.user._id },
                     })];
             case 2:
                 deliverables = _a.sent();
