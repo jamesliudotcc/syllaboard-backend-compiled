@@ -54,17 +54,20 @@ var Assignment_1 = require("../entity/Assignment");
 var Cohort_1 = require("../entity/Cohort");
 var Deliverable_1 = require("../entity/Deliverable");
 var User_1 = require("../entity/User");
-var assignmentRepository = typeorm_1.getMongoRepository(Assignment_1.Assignment);
-var cohortRepository = typeorm_1.getMongoRepository(Cohort_1.Cohort);
-var deliverableRepository = typeorm_1.getMongoRepository(Deliverable_1.Deliverable);
-var usersRepository = typeorm_1.getMongoRepository(User_1.User);
-var manager = typeorm_1.getMongoManager();
+exports.assignmentRepository = typeorm_1.getMongoRepository(Assignment_1.Assignment);
+exports.cohortRepository = typeorm_1.getMongoRepository(Cohort_1.Cohort);
+exports.deliverableRepository = typeorm_1.getMongoRepository(Deliverable_1.Deliverable);
+exports.usersRepository = typeorm_1.getMongoRepository(User_1.User);
+exports.manager = typeorm_1.getMongoManager();
 // Express setup
 var router = express.Router();
 // Load passport config
 // tslint:disable-next-line:no-var-requires
 var passportService = require('../services/passport');
 var passport = require("passport");
+var assignmentToDeliverable_1 = require("./assignmentToDeliverable");
+var instructorEdits_1 = require("./instructorEdits");
+var validateNewInstructor_1 = require("./validateNewInstructor");
 // Auth strategies
 var requireAuth = passport.authenticate('jwt', { session: false });
 /*************************************** */
@@ -78,7 +81,7 @@ router.get('/', requireAuth, function (req, res) {
     return res.send({ user: req.user });
 });
 router.post('/assignments', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var incoming, assignment, createdAssignment, savedAssignment, mintedAssignment, error_1;
+    var incoming, mintedAssignment, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -87,40 +90,11 @@ router.post('/assignments', requireAuth, function (req, res) { return __awaiter(
                 }
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 5, , 6]);
+                _a.trys.push([1, 3, , 4]);
                 incoming = req.body;
                 incoming.instructor = req.user._id;
-                assignment = new Assignment_1.Assignment();
-                if (incoming.cohortType) {
-                    assignment.cohortType = incoming.cohortType;
-                }
-                if (incoming.cohortWeek) {
-                    assignment.cohortWeek = incoming.cohortWeek;
-                }
-                if (incoming.instructions) {
-                    assignment.instructions = incoming.instructions;
-                }
-                if (incoming.instructor) {
-                    assignment.instructor = incoming.instructor;
-                }
-                if (incoming.name) {
-                    assignment.name = incoming.name;
-                }
-                if (incoming.resourcesUrls) {
-                    assignment.resourcesUrls = incoming.resourcesUrls;
-                }
-                if (incoming.topics) {
-                    assignment.topics = incoming.topics;
-                }
-                assignment.version = 1;
-                return [4 /*yield*/, assignmentRepository.create(assignment)];
+                return [4 /*yield*/, validateNewInstructor_1.validateNewInstructor(incoming)];
             case 2:
-                createdAssignment = _a.sent();
-                return [4 /*yield*/, manager.save(createdAssignment)];
-            case 3:
-                savedAssignment = _a.sent();
-                return [4 /*yield*/, assignmentRepository.findOne(savedAssignment)];
-            case 4:
                 mintedAssignment = _a.sent();
                 console.log('At the instructors assignments POST route', req.user._id);
                 res.send({
@@ -128,12 +102,12 @@ router.post('/assignments', requireAuth, function (req, res) { return __awaiter(
                     assignment: mintedAssignment,
                     incoming: incoming,
                 });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 4];
+            case 3:
                 error_1 = _a.sent();
                 console.log('Error with the instructor/assignments/ POST route', error_1);
                 return [2 /*return*/, res.send({ error: 'error' })];
-            case 6: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -150,7 +124,7 @@ router.get('/assignments', requireAuth, function (req, res) { return __awaiter(_
                 _a.trys.push([1, 3, , 4]);
                 //
                 console.log('At the instructors assignments GET route', req.user._id);
-                return [4 /*yield*/, assignmentRepository.find()];
+                return [4 /*yield*/, exports.assignmentRepository.find()];
             case 2:
                 assignments = _a.sent();
                 res.send({ assignments: assignments });
@@ -175,11 +149,11 @@ router.put('/assignments/:id', requireAuth, function (req, res) { return __await
             case 1:
                 _a.trys.push([1, 4, , 5]);
                 console.log('At the instructors assignments PUT route', req.user._id);
-                return [4 /*yield*/, assignmentRepository.findOne(req.params.id)];
+                return [4 /*yield*/, exports.assignmentRepository.findOne(req.params.id)];
             case 2:
                 toEditAssignment = _a.sent();
-                editedAssignment = editAssignment(toEditAssignment, req.body);
-                return [4 /*yield*/, assignmentRepository.updateOne(toEditAssignment, {
+                editedAssignment = instructorEdits_1.editAssignment(toEditAssignment, req.body);
+                return [4 /*yield*/, exports.assignmentRepository.updateOne(toEditAssignment, {
                         $set: editedAssignment,
                     })];
             case 3:
@@ -208,10 +182,10 @@ router.delete('/assignments/:id', requireAuth, function (req, res) { return __aw
             case 1:
                 _a.trys.push([1, 4, , 5]);
                 console.log("DELETE assignment " + req.params.id);
-                return [4 /*yield*/, assignmentRepository.findOne(req.params.id)];
+                return [4 /*yield*/, exports.assignmentRepository.findOne(req.params.id)];
             case 2:
                 assignment = _a.sent();
-                return [4 /*yield*/, assignmentRepository.findOneAndDelete(assignment)];
+                return [4 /*yield*/, exports.assignmentRepository.findOneAndDelete(assignment)];
             case 3:
                 deletedAssignment = _a.sent();
                 return [2 /*return*/, res.send({ deleted: deletedAssignment })];
@@ -236,7 +210,7 @@ router.get('/cohorts', requireAuth, function (req, res) { return __awaiter(_this
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, cohortRepository.find({
+                return [4 /*yield*/, exports.cohortRepository.find({
                         where: { instructors: req.user._id },
                     })];
             case 2:
@@ -251,78 +225,39 @@ router.get('/cohorts', requireAuth, function (req, res) { return __awaiter(_this
     });
 }); });
 router.post('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var instructor_1, cohort_1, assignment_1, error_6;
-    var _this = this;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, instructor, cohort, assignment, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 //
                 if (req.user.role !== 'instructor') {
                     return [2 /*return*/, res.status(403).send({ error: 'Not a instructor' })];
                 }
-                _a.label = 1;
+                _b.label = 1;
             case 1:
-                _a.trys.push([1, 5, , 6]);
+                _b.trys.push([1, 3, , 4]);
                 console.log('At the instructors cohorts POST route', req.user._id);
-                return [4 /*yield*/, usersRepository.findOne(req.user._id)];
+                return [4 /*yield*/, assignmentToDeliverable_1.assignmentToDeliverable(req)];
             case 2:
-                instructor_1 = _a.sent();
-                return [4 /*yield*/, cohortRepository.findOne(req.params.id)];
-            case 3:
-                cohort_1 = _a.sent();
-                return [4 /*yield*/, assignmentRepository.findOne(req.body.assignmentId)];
-            case 4:
-                assignment_1 = _a.sent();
-                cohort_1.students.forEach(function (studentId) { return __awaiter(_this, void 0, void 0, function () {
-                    var deliverable, freshDeliverable, savedDeliverable, student, savedStudent;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                deliverable = new Deliverable_1.Deliverable();
-                                deliverable.name = assignment_1.name;
-                                deliverable.student.push(studentId);
-                                deliverable.cohort.push(cohort_1._id);
-                                deliverable.instructions = assignment_1.instructions;
-                                deliverable.instructor.push(instructor_1._id);
-                                deliverable.resourcesUrls = assignment_1.resourcesUrls;
-                                deliverable.topics = assignment_1.topics;
-                                deliverable.deadline = new Date(req.body.dueDate);
-                                return [4 /*yield*/, manager.save(deliverable)];
-                            case 1:
-                                freshDeliverable = _a.sent();
-                                return [4 /*yield*/, deliverableRepository.findOne(freshDeliverable)];
-                            case 2:
-                                savedDeliverable = _a.sent();
-                                return [4 /*yield*/, usersRepository.findOne(studentId)];
-                            case 3:
-                                student = _a.sent();
-                                student.deliverables.push(savedDeliverable._id);
-                                return [4 /*yield*/, manager.save(student)];
-                            case 4:
-                                savedStudent = _a.sent();
-                                console.log(savedStudent);
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
+                _a = _b.sent(), instructor = _a.instructor, cohort = _a.cohort, assignment = _a.assignment;
                 res.send({
                     message: 'At the instructors cohort POST route',
-                    instructor: instructor_1,
-                    cohort: cohort_1,
-                    assignment: assignment_1,
+                    instructor: instructor,
+                    cohort: cohort,
+                    assignment: assignment,
                     dueDate: new Date(req.body.dueDate),
                 });
-                return [3 /*break*/, 6];
-            case 5:
-                error_6 = _a.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _b.sent();
                 console.log('Error with the instructor/cohorts/ POST route', error_6);
                 return [2 /*return*/, res.send({ error: 'error' })];
-            case 6: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 router.get('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-    var cohort_2, instructorsForCohort, error_7;
+    var cohort_1, instructorsForCohort, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -334,16 +269,16 @@ router.get('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_
             case 1:
                 _a.trys.push([1, 3, , 4]);
                 console.log('At the instructors cohorts/:id GET route', req.user._id);
-                return [4 /*yield*/, cohortRepository.findOne(req.params.id)];
+                return [4 /*yield*/, exports.cohortRepository.findOne(req.params.id)];
             case 2:
-                cohort_2 = _a.sent();
-                instructorsForCohort = cohort_2.instructors.map(function (instructor) {
-                    return usersRepository.findOne(instructor);
+                cohort_1 = _a.sent();
+                instructorsForCohort = cohort_1.instructors.map(function (instructor) {
+                    return exports.usersRepository.findOne(instructor);
                 });
                 Promise.all(instructorsForCohort).then(function (instructors) {
-                    var cohortWithInstructors = __assign({}, cohort_2, { instructors: instructors });
-                    var studentsForCohort = cohort_2.students.map(function (student) {
-                        return usersRepository.findOne(student);
+                    var cohortWithInstructors = __assign({}, cohort_1, { instructors: instructors });
+                    var studentsForCohort = cohort_1.students.map(function (student) {
+                        return exports.usersRepository.findOne(student);
                     });
                     Promise.all(studentsForCohort).then(function (students) {
                         var cohortWithStudents = __assign({}, cohortWithInstructors, { students: students });
@@ -408,7 +343,7 @@ router.get('/deliverables', requireAuth, function (req, res) { return __awaiter(
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, deliverableRepository.find({
+                return [4 /*yield*/, exports.deliverableRepository.find({
                         where: { instructor: req.user._id },
                     })];
             case 2:
@@ -437,10 +372,10 @@ router.get('/deliverables/:id', requireAuth, function (req, res) { return __awai
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, deliverableRepository.findOne(req.params.id)];
+                return [4 /*yield*/, exports.deliverableRepository.findOne(req.params.id)];
             case 2:
                 deliverable = _a.sent();
-                return [4 /*yield*/, usersRepository.findOne(deliverable.student[0])];
+                return [4 /*yield*/, exports.usersRepository.findOne(deliverable.student[0])];
             case 3:
                 student = _a.sent();
                 res.send({
@@ -470,11 +405,11 @@ router.put('/deliverables/:id', requireAuth, function (req, res) { return __awai
                 _a.trys.push([1, 4, , 5]);
                 //
                 console.log('At the instructors deliverables/:id PUT route', req.user._id);
-                return [4 /*yield*/, deliverableRepository.findOne(req.params.id)];
+                return [4 /*yield*/, exports.deliverableRepository.findOne(req.params.id)];
             case 2:
                 deliverable = _a.sent();
-                editedDeliverable = editDeliverable(deliverable, req.body);
-                return [4 /*yield*/, deliverableRepository.updateOne(deliverable, { $set: editedDeliverable })];
+                editedDeliverable = instructorEdits_1.editDeliverable(deliverable, req.body);
+                return [4 /*yield*/, exports.deliverableRepository.updateOne(deliverable, { $set: editedDeliverable })];
             case 3:
                 updatedDeliverable = _a.sent();
                 res.send({
@@ -493,50 +428,4 @@ router.put('/deliverables/:id', requireAuth, function (req, res) { return __awai
     });
 }); });
 module.exports = router;
-/*************************************** */
-//          Edit Functions
-/*************************************** */
-function editAssignment(toEditAssignmeent, incoming) {
-    var editedAssignment = __assign({}, toEditAssignmeent);
-    if (incoming.firstName) {
-        editedAssignment.cohortType = incoming.cohortType;
-    }
-    if (incoming.lastName) {
-        editedAssignment.cohortWeek = incoming.cohortWeek;
-    }
-    if (incoming.instructions) {
-        editedAssignment.instructions = incoming.instructions;
-    }
-    if (incoming.instructor) {
-        editedAssignment.instructor = incoming.instructor;
-    }
-    if (incoming.name) {
-        editedAssignment.name = incoming.name;
-    }
-    if (incoming.resourcesUrls) {
-        editedAssignment.resourcesUrls = incoming.resourcesUrls;
-    }
-    if (incoming.topics) {
-        editedAssignment.topics = incoming.topics;
-    }
-    if (incoming.version) {
-        editedAssignment.version++;
-    }
-    else {
-        editedAssignment.version = 1;
-    }
-    return editedAssignment;
-}
-function editDeliverable(deliverable, incoming) {
-    var editedDeliverable = __assign({}, deliverable);
-    //
-    console.log('Marking deliverable completed', incoming);
-    editedDeliverable.completed = incoming.completed
-        ? new Date(incoming.completed)
-        : null;
-    if (incoming.grade) {
-        editedDeliverable.grade = incoming.grade;
-    }
-    return editedDeliverable;
-}
 //# sourceMappingURL=instructor.js.map

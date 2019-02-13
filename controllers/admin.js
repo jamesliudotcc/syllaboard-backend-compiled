@@ -49,7 +49,6 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var dotenv_1 = require("dotenv");
 var express = require("express");
-var Mailgun = require("mailgun-js");
 dotenv_1.config();
 // TypeORM setup
 var typeorm_1 = require("typeorm");
@@ -64,6 +63,8 @@ var router = express.Router();
 // tslint:disable-next-line:no-var-requires
 var passportService = require('../services/passport');
 var passport = require("passport");
+var adminEdits_1 = require("./adminEdits");
+var sendEmail_1 = require("./sendEmail");
 // Auth strategies
 var requireAuth = passport.authenticate('jwt', { session: false });
 /*************************************** */
@@ -176,7 +177,7 @@ router.put('/users/:id', requireAuth, function (req, res) { return __awaiter(_th
                 return [4 /*yield*/, usersRepository.findOne(req.params.id)];
             case 2:
                 toEditUser = _a.sent();
-                editedUser = editUser(toEditUser, req.body);
+                editedUser = adminEdits_1.editUser(toEditUser, req.body);
                 return [4 /*yield*/, usersRepository.updateOne(toEditUser, {
                         $set: editedUser,
                     })];
@@ -337,7 +338,7 @@ router.post('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(
                     console.log("no student key for " + cohort.name + " cohort");
                     throw new Error("no student key for " + cohort.name + " cohort");
                 }
-                return [4 /*yield*/, sendEmail({
+                return [4 /*yield*/, sendEmail_1.sendEmail({
                         email: req.body.email,
                         cohortKey: cohort.studentKey,
                     })];
@@ -368,7 +369,7 @@ router.put('/cohorts/:id', requireAuth, function (req, res) { return __awaiter(_
                 return [4 /*yield*/, cohortRepository.findOne(req.params.id)];
             case 2:
                 toEditCohort = _a.sent();
-                editedCohort = editCohort(toEditCohort, req.body);
+                editedCohort = adminEdits_1.editCohort(toEditCohort, req.body);
                 return [4 /*yield*/, cohortRepository.updateOne(toEditCohort, {
                         $set: editedCohort,
                     })];
@@ -464,77 +465,4 @@ router.put('/cohorts/instructors/:id', requireAuth, function (req, res) { return
     });
 }); });
 module.exports = router;
-/*************************************** */
-//          Edit Functions
-/*************************************** */
-function editCohort(toEditCohort, incoming) {
-    var editedCohort = __assign({}, toEditCohort);
-    if (incoming.name) {
-        editedCohort.name = incoming.name;
-    }
-    if (incoming.campus) {
-        editedCohort.campus = incoming.campus;
-    }
-    editedCohort.startDate = incoming.startDate
-        ? new Date(incoming.startDate)
-        : new Date(toEditCohort.startDate);
-    editedCohort.endDate = incoming.endDate
-        ? new Date(incoming.endDate)
-        : new Date(toEditCohort.endDate);
-    return editedCohort;
-}
-function editUser(toEditUser, incoming) {
-    var editedUser = __assign({}, toEditUser);
-    if (incoming.firstName) {
-        editedUser.firstName = incoming.firstName;
-    }
-    if (incoming.lastName) {
-        editedUser.lastName = incoming.lastName;
-    }
-    if (incoming.email) {
-        editedUser.email = incoming.email;
-    }
-    if (incoming.role) {
-        editedUser.role = incoming.role;
-    }
-    return editedUser;
-}
-/*************************************** */
-//          Send email
-/*************************************** */
-function sendEmail(emailInfo) {
-    return __awaiter(this, void 0, void 0, function () {
-        var apiKey, domain, mailgun, fromWho, cohortKey, userEmail, link, email, mailGunResponse, error_13;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    apiKey = process.env.MAILGUN_KEY;
-                    domain = process.env.MAILGUN_DOMAIN;
-                    mailgun = new Mailgun({ apiKey: apiKey, domain: domain });
-                    fromWho = 'Syllaboard Robot<robot@jamesliu.cc>';
-                    cohortKey = emailInfo.cohortKey;
-                    userEmail = emailInfo.email;
-                    link = "http://syllaboard.herokuapp.com/signin/" + cohortKey + "/";
-                    email = {
-                        from: fromWho,
-                        to: userEmail,
-                        subject: 'Welcome to Syllaboard',
-                        html: "You have been invited to Syllabard, General Assembly's assignment tracking service. Click <a href=\"" + link + "\">here</a> to sign up.",
-                    };
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, mailgun.messages().send(email)];
-                case 2:
-                    mailGunResponse = _a.sent();
-                    return [2 /*return*/, mailGunResponse];
-                case 3:
-                    error_13 = _a.sent();
-                    console.log(error_13);
-                    return [2 /*return*/, error_13];
-                case 4: return [2 /*return*/];
-            }
-        });
-    });
-}
 //# sourceMappingURL=admin.js.map
